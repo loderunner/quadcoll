@@ -1,23 +1,38 @@
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageChops
-from os import listdir
 
 import quad_coll
+import os
 
 depths = [4, 8, 16]
 sizes = [2, 4, 6, 8, 10]
 ratios = [.01, .05, .1, .25]
 opacities = [.1, .25, .5, .75, .9]
 
-for f in listdir('.'):
+for f in os.listdir('.'):
     try:
         img = Image.open(f)
     except IOError:
         pass
     else:
+        idx = f.rfind('.')
+        if (idx == -1):
+            imgName = f
+            imgExtension = ''
+        else:
+            imgName = f[:idx]
+            imgExtension = f[idx:]
+
+        dirName = imgName + '_test'
+        try:
+            os.mkdir(dirName)
+        except OSError as e:
+            if (e.errno != 17):
+                raise e
+
         n = 0
-        csv = file(f[:f.rfind('.')] + '_trees.csv', 'w')
+        csv = file(dirName + '/' + imgName + '_trees.csv', 'w')
         csv.write('Input file name,Output file name,Max tree depth,Min node size,Min fill ratio,Min pixel opacity,# of nodes,# of leaf nodes,Image pixels,Tree pixels,False positives,False Positives %,False negatives,False negatives %\n')
 
         for d in depths:
@@ -32,14 +47,14 @@ for f in listdir('.'):
                         tree = quad_coll.makeTree(img)
 
                         img2 = Image.new('RGBA', img.size)
-                        quad_coll.drawTree(img2, tree)
+                        quad_coll.drawTree(img2, tree, True)
                         draw = ImageDraw.Draw(img2)
                         draw.text((0, 0), 'max tree depth: %d' % d)
                         draw.text((0, 10), 'min node size: %d pixels' % s)
                         draw.text((0, 20), 'min node fill ratio: %f pixels' % r)
                         draw.text((0, 30), 'min filled pixel opactiy:%f alpha' % o)
 
-                        outfilename = f[:f.rfind('.')] + ('%04d' % n) + f[f.rfind('.'):]
+                        outfilename = dirName + '/' + imgName + ('%04d' % n) + f[f.rfind('.'):]
                         ImageChops.composite(img2, img, img2).save(outfilename)
                         n = n + 1
 
@@ -51,8 +66,8 @@ for f in listdir('.'):
                             s,\
                             r,\
                             o,\
-                            tree.numNodes(True),\
-                            tree.numNodes(False),\
+                            tree.getNumNodes(),\
+                            tree.getNumLeafNodes(),\
                             error['imgPixels'],\
                             error['treePixels'],\
                             error['falsePositives'],\
@@ -60,6 +75,5 @@ for f in listdir('.'):
                             error['falseNegatives'],\
                             error['falseNegatives']/float(error['imgPixels']),\
                         ))
-
         
         csv.close()

@@ -19,7 +19,13 @@ class QuadTree:
             and self.SW == None
             and self.SE == None)
 
-    def numNodes(self, countAllNodes):
+    def getNumNodes(self):
+        return self.__countNodes(True)
+
+    def getNumLeafNodes(self):
+        return self.__countNodes(False)
+
+    def __countNodes(self, countAllNodes=True):
         if (self.isLeaf()):
             return 1
         else:
@@ -28,13 +34,13 @@ class QuadTree:
             else:
                 count = 0
             if (self.NW != None):
-                count = count + self.NW.numNodes(countAllNodes)
+                count = count + self.NW.__countNodes(countAllNodes)
             if (self.NE != None):
-                count = count + self.NE.numNodes(countAllNodes)
+                count = count + self.NE.__countNodes(countAllNodes)
             if (self.SW != None):
-                count = count + self.SW.numNodes(countAllNodes)
+                count = count + self.SW.__countNodes(countAllNodes)
             if (self.SE != None):
-                count = count + self.SE.numNodes(countAllNodes)
+                count = count + self.SE.__countNodes(countAllNodes)
             return count
 
 def checkFill(img):
@@ -141,24 +147,27 @@ def __printTree(curNode, depth, x, y, maxx, maxy):
         __printTree(curNode.SW, depth + 1, x, midy, midx, maxy)
         __printTree(curNode.SE, depth + 1, midx, midy, maxx, maxy)
 
-def drawTree(img, tree):
+def drawTree(img, tree, drawEmptySpace=False):
     draw = ImageDraw.Draw(img)
-    __drawTree(draw, tree, 0, 0, img.size[0], img.size[1])
+    __drawTree(draw, tree, 0, 0, img.size[0], img.size[1], drawEmptySpace)
 
-def __drawTree(imgDraw, curNode, x, y, maxx, maxy):
+def __drawTree(imgDraw, curNode, x, y, maxx, maxy, drawEmptySpace):
     if (curNode == None):
         return
 
-    if (curNode.isLeaf() and curNode.full):
-        imgDraw.rectangle([x, y, maxx, maxy], outline=(255, 0, 0, 255), fill=(255, 0, 0, 128))
+    if (curNode.isLeaf()):
+        if (curNode.full):
+            imgDraw.rectangle([x, y, maxx, maxy], outline=(255, 0, 0, 255), fill=(255, 0, 0, 128))
+        elif (drawEmptySpace):
+            imgDraw.rectangle([x, y, maxx, maxy], outline=(0, 255, 0, 255), fill=(0, 255, 0, 128))
     else:
         midx = (x + maxx)/2
         midy = (y + maxy)/2
 
-        __drawTree(imgDraw, curNode.NW, x, y, midx, midy)
-        __drawTree(imgDraw, curNode.NE, midx, y, maxx, midy)
-        __drawTree(imgDraw, curNode.SW, x, midy, midx, maxy)
-        __drawTree(imgDraw, curNode.SE, midx, midy, maxx, maxy)
+        __drawTree(imgDraw, curNode.NW, x, y, midx, midy, drawEmptySpace)
+        __drawTree(imgDraw, curNode.NE, midx, y, maxx, midy, drawEmptySpace)
+        __drawTree(imgDraw, curNode.SW, x, midy, midx, maxy, drawEmptySpace)
+        __drawTree(imgDraw, curNode.SE, midx, midy, maxx, maxy, drawEmptySpace)
 
 
 
