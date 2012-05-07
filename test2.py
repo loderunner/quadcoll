@@ -5,7 +5,7 @@ from PIL import ImageChops
 import quad_coll
 import os
 
-depths = [4, 8, 16]
+depths = [4, 6, 8, 12, 14, 16]
 sizes = [2, 4, 6, 8, 10]
 ratios = [.01, .05, .1, .25]
 opacities = [.1, .25, .5, .75, .9]
@@ -33,7 +33,7 @@ for f in os.listdir('.'):
 
         n = 0
         csv = file(dirName + '/' + imgName + '_trees.csv', 'w')
-        csv.write('Input file name,Output file name,Max tree depth,Min node size,Min fill ratio,Min pixel opacity,# of nodes,# of leaf nodes,Image pixels,Tree pixels,False positives,False Positives %,False negatives,False negatives %\n')
+        csv.write('Input file name,Output file name,Max tree depth,Min node size,Min fill ratio,Min pixel opacity,# of nodes,# of leaf nodes,Image pixels,Tree pixels,False positives,False negatives,Total error\n')
 
         for d in depths:
             quad_coll.MAX_DEPTH = d
@@ -59,7 +59,7 @@ for f in os.listdir('.'):
                         n = n + 1
 
                         error = quad_coll.calcError(img, tree)
-                        csv.write('%s,%s,%d,%d,%f,%f,%d,%d,%d,%d,%d,%f,%d,%f\n' % (\
+                        csv.write('%s,%s,%d,%d,%f,%f,%d,%d,%d,%d,%d,%d,%d\n' % (\
                             f,\
                             outfilename,\
                             d,\
@@ -71,9 +71,8 @@ for f in os.listdir('.'):
                             error['imgPixels'],\
                             error['treePixels'],\
                             error['falsePositives'],\
-                            error['falsePositives']/float(error['treePixels']),\
                             error['falseNegatives'],\
-                            error['falseNegatives']/float(error['imgPixels']),\
+                            error['falsePositives'] + error['falseNegatives']\
                         ))
         
         csv.close()

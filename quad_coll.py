@@ -59,14 +59,20 @@ def calcError(img, tree):
 def __calcError(img, curNode, d):
     width = img.size[0]
     height = img.size[1]
-    nodePixels = width*height
-    imgPixels = nodePixels*checkFill(img)
-
-    d['imgPixels'] = d['imgPixels'] + imgPixels
-    d['treePixels'] = d['treePixels'] + nodePixels
 
     if (curNode.isLeaf()):
+        nodePixels = width*height
+        imgPixels = 0
+
+        data = img.getdata()
+        for px in data:
+            if (px[3]/255.0 > MIN_OPACITY):
+                imgPixels = imgPixels + 1
+                
+        d['imgPixels'] = d['imgPixels'] + imgPixels
+
         if (curNode.full):
+            d['treePixels'] = d['treePixels'] + nodePixels
             d['falsePositives'] = d['falsePositives'] + nodePixels - imgPixels
         else:
             d['falseNegatives'] = d['falseNegatives'] + imgPixels
